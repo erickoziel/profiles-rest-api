@@ -1,5 +1,14 @@
-django==2.2
+certifi==2019.11.28
+chardet==3.0.4
+Django==2.2
 djangorestframework==3.9.2
+idna==2.9
 nltk==3.4.5
-vaderSentiment==3.2.1
+pkg-resources==0.0.0
+pytz==2019.3
+requests==2.23.0
+six==1.14.0
+sqlparse==0.3.0
 textblob==0.15.3
+urllib3==1.25.8
+vaderSentiment==3.2.1
