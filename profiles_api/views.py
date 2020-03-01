@@ -60,16 +60,68 @@ class HelloApiView(APIView):
 # class SentimentViewSet(viewsets.ViewSet):
 class SentimentViewSet(mixins.CreateModelMixin,
                         viewsets.GenericViewSet):
-    '''Get sentiment from custom message'''
+    '''Create entry with sentiment and translation'''
     serializer_class = serializers.SentimentMessageItemSerializer
 
-    def sentiment_analyzer_score(cls, message):
-        sentiment = 0.1
-        return sentiment
+    # @classmethod
+    # def sentiment_analyzer_scores(message):
+    #     analyser = SentimentIntensityAnalyzer()
+    #     new_words = {
+    #         'dont': -0.3,
+    #         "don't": -0.3,
+    #         "do not": -0.3,
+    #     }
+    #     analyser.lexicon.update(new_words)
+    #     # New words and values
+    #     score = analyser.polarity_scores(message)
+    #     return score['compound']
 
-    def translate(cls, message):
-        translation = message + ' TRANSLATED'
-        return translation
+    def text_analysis(cls, message):
+        output = {}
+        if not message:
+            raise ValueError('Message not found')
+        blob = TextBlob(message)
+        original_language = blob.detect_language()
+        if original_language != "es":
+            translation_spanish = blob.translate(to="es")
+        else:
+            translation_spanish = blob
+        if original_language == "en":
+            text = blob
+        else:
+            text = blob.translate(to="en")
+
+        text = str(text)
+        # Sentiment score
+        analyser = SentimentIntensityAnalyzer()
+        new_words = {
+            'dont': -2,
+            "don't": -2,
+            "do not": -2,
+            "don't like" : -3,
+            "did not" : -3,
+            "didn't" : -3,
+            "like" : 1,
+        }
+        analyser.lexicon.update(new_words)
+        # New words and values
+        score = analyser.polarity_scores(str(text))
+        sentiment_score = round(score['compound'],3)
+        sentiment_tag = 'Neutral'
+        if (sentiment_score < -0.10):
+            sentiment_tag = 'Negative'
+        elif (sentiment_score > 0.10):
+            sentiment_tag = 'Positive'
+
+        analysis = {
+            'original_language': str(original_language).upper(),
+            'translation_spanish' : str(translation_spanish),
+            'translation_english' : str(text),
+            'sentiment_score' : sentiment_score,
+            'sentiment_tag' : str(sentiment_tag),
+            }
+        return analysis
+
 
     # def list(self, request):
     #     '''Returns custom message '''
@@ -82,9 +134,15 @@ class SentimentViewSet(mixins.CreateModelMixin,
 
         if serializer.is_valid():
             message = serializer.validated_data.get('message')
-            sentiment = self.sentiment_analyzer_score(message)
-            translation = self.translate(message)
-            return Response({'message':message, 'sentiment':sentiment, 'translation':translation})
+            analysis = self.text_analysis(message)
+            return Response({
+                    'message':message,
+                    'original_language': analysis['original_language'],
+                    'translation_spanish' : analysis['translation_spanish'],
+                    'translation_english' : analysis['translation_english'],
+                    'sentiment_score' : analysis['sentiment_score'],
+                    'sentiment_tag' : analysis['sentiment_tag'],
+                        })
         else:
             return Response(
                 serializer.errors,
