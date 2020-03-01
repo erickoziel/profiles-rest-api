@@ -5,6 +5,47 @@ from django.contrib.auth.models import PermissionsMixin
 from django.contrib.auth.models import BaseUserManager
 from django.conf import settings
 
+
+
+class SentimentMessageItem(models.Model):
+    '''Message update'''
+    message = models.CharField(max_length=1000)
+    created_on = models.DateTimeField(auto_now_add=True)
+    translation = models.CharField(max_length=2000, default="")
+    sentiment = models.FloatField(default=0.0)
+
+
+
+    # def translate_message(self, message):
+    #     '''Translate message'''
+    #
+    #     if not message:
+    #         raise ValueError('Message not found')
+
+
+
+
+
+    # def create_user(self, email, name, password=None):
+    #     '''Create a new user profile '''
+    #     if not email:
+    #         raise ValueError('User must have an email address')
+    #
+    #     email = self.normalize_email(email)
+    #     user = self.model(email=email, name=name)
+    #
+    #     user.set_password(password)
+    #     user.save(using=self._db)
+    #
+    #     return user
+
+
+
+    def __str__(self):
+        '''Return the model as a string'''
+        return self.message
+
+
 class UserProfileManager(BaseUserManager):
     '''Manager for user profiles '''
 
